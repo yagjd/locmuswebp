@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DropPlay - Local Music Player</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Ionicons for beautiful simple icons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <ion-icon name="musical-notes"></ion-icon>
+                <h1>DropPlay</h1>
+            </div>
+            <p>Your local music, played beautifully.</p>
+        </header>
+
+        <!-- Drag & Drop Zone -->
+        <div id="drop-zone" class="drop-zone">
+            <div class="drop-content">
+                <ion-icon name="cloud-upload-outline"></ion-icon>
+                <h2>Drag & Drop audio files here</h2>
+                <p>Supports .mp3, .wav, .ogg</p>
+                <button id="browse-btn" class="glow-btn">Browse Files</button>
+                <input type="file" id="file-input" multiple accept="audio/*" style="display: none;">
+            </div>
+        </div>
+
+        <!-- Main Player UI (hidden until tracks are loaded) -->
+        <div id="player-section" class="player-section hidden">
+            <div class="now-playing">
+                <div class="track-artwork">
+                    <ion-icon name="disc-outline"></ion-icon>
+                </div>
+                <div class="track-info">
+                    <h2 id="current-title">No track selected</h2>
+                    <p id="current-status">Drop files to start playing</p>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <span id="time-current">0:00</span>
+                <div class="progress-bar-bg" id="progress-bg">
+                    <div class="progress-bar-fill" id="progress-fill"></div>
+                </div>
+                <span id="time-total">0:00</span>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <button class="control-btn" id="btn-prev">
+                    <ion-icon name="play-skip-back"></ion-icon>
+                </button>
+                <button class="control-btn play-btn" id="btn-play-pause">
+                    <ion-icon name="play" id="icon-play"></ion-icon>
+                    <ion-icon name="pause" id="icon-pause" class="hidden"></ion-icon>
+                </button>
+                <button class="control-btn" id="btn-next">
+                    <ion-icon name="play-skip-forward"></ion-icon>
+                </button>
+            </div>
+
+            <!-- Volume Control -->
+            <div class="volume-container">
+                <ion-icon name="volume-medium-outline"></ion-icon>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="1">
+            </div>
+        </div>
+
+        <!-- Playlist -->
+        <div class="playlist-section">
+            <div class="playlist-header">
+                <h3>Up Next</h3>
+                <span id="track-count">0 tracks</span>
+            </div>
+            <ul id="playlist" class="playlist">
+                <!-- Track items will be generated here -->
+                <li class="empty-state">Your playlist is empty</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Hidden audio element for actual playback -->
+    <audio id="audio-player"></audio>
+    <script src="script.js"></script>
+</body>
+</html>
