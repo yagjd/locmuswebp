@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,17 +10,27 @@
     <!-- Ionicons for beautiful simple icons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/spark-md5/3.0.2/spark-md5.min.js"></script>
 </head>
+
 <body>
     <div class="app-container">
-        
+
         <!-- Header -->
         <header class="app-header">
             <div class="logo">
                 <ion-icon name="musical-notes"></ion-icon>
                 <h1>DropPlay</h1>
             </div>
-            <p>Your local music, played beautifully.</p>
+            <div class="header-subtitle">
+                <p>Play your local music.</p>
+                <button id="lastfm-connect-btn" class="lastfm-btn hidden">
+                    <ion-icon name="barcode-outline"></ion-icon> Connect Last.fm
+                </button>
+                <span id="lastfm-status" class="lastfm-status hidden">
+                    <ion-icon name="checkmark-circle"></ion-icon> Last.fm Connected
+                </span>
+            </div>
         </header>
 
         <!-- Drag & Drop Zone -->
@@ -90,6 +101,7 @@
 
     <!-- Hidden audio element for actual playback -->
     <audio id="audio-player"></audio>
-    <script src="script.js"></script>
+    <script src="script_lastfm.js"></script>
 </body>
+
 </html>

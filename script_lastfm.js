@@ -1,3 +1,6 @@
+const LASTFM_API_KEY = '481825092527eb6008d10743e2065155';
+const LASTFM_API_SECRET = 'da2a97798b58dd7f8fec3c9aaa494a9a';
+
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
     const dropZone = document.getElementById('drop-zone');
@@ -7,6 +10,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const playlistElement = document.getElementById('playlist');
     const trackCountElement = document.getElementById('track-count');
     const audioPlayer = document.getElementById('audio-player');
+
+    // Last.fm Elements
+    const lastfmConnectBtn = document.getElementById('lastfm-connect-btn');
+    const lastfmStatus = document.getElementById('lastfm-status');
 
     // Player Controls
     const btnPlayPause = document.getElementById('btn-play-pause');
@@ -30,6 +37,137 @@ document.addEventListener('DOMContentLoaded', () => {
     // State
     let playlist = [];
     let currentIndex = -1;
+    let currentTrackStartTime = 0;
+    let hasScrobbledCurrent = false;
+
+    // --- Last.fm Auth and Scrobbling ---
+    let sessionKey = localStorage.getItem('lastfm_session_key');
+    let lastfmSessionName = localStorage.getItem('lastfm_session_name');
+
+    let pendingToken = localStorage.getItem('lastfm_pending_token');
+
+    function checkLastFmAuth() {
+        if (sessionKey) {
+            lastfmConnectBtn.classList.add('hidden');
+            lastfmStatus.classList.remove('hidden');
+            lastfmStatus.innerHTML = `<ion-icon name="checkmark-circle"></ion-icon> Last.fm: ${lastfmSessionName || 'Connected'}`;
+        } else if (pendingToken) {
+            lastfmConnectBtn.innerHTML = '<ion-icon name="checkmark"></ion-icon> Complete Last.fm Setup';
+            lastfmConnectBtn.classList.remove('hidden');
+        } else if (LASTFM_API_KEY !== 'PASTE_YOUR_API_KEY_HERE') {
+            lastfmConnectBtn.classList.remove('hidden');
+        }
+    }
+
+    lastfmConnectBtn.addEventListener('click', async () => {
+        if (LASTFM_API_KEY === 'PASTE_YOUR_API_KEY_HERE') {
+            alert('Please open script_lastfm.js and paste your LASTFM_API_KEY and LASTFM_API_SECRET at the top!');
+            return;
+        }
+
+        if (pendingToken) {
+            // Step 2: Complete Auth
+            lastfmConnectBtn.innerHTML = 'Connecting...';
+            const method = 'auth.getSession';
+            const sigString = `api_key${LASTFM_API_KEY}method${method}token${pendingToken}${LASTFM_API_SECRET}`;
+            const api_sig = SparkMD5.hash(sigString);
+            
+            const url = `http://ws.audioscrobbler.com/2.0/?method=${method}&api_key=${LASTFM_API_KEY}&token=${pendingToken}&api_sig=${api_sig}&format=json`;
+            
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.session) {
+                    sessionKey = data.session.key;
+                    lastfmSessionName = data.session.name;
+                    localStorage.setItem('lastfm_session_key', sessionKey);
+                    localStorage.setItem('lastfm_session_name', lastfmSessionName);
+                    localStorage.removeItem('lastfm_pending_token');
+                    pendingToken = null;
+                    checkLastFmAuth();
+                } else {
+                    throw new Error(data.message || 'Auth failed');
+                }
+            } catch (err) {
+                console.error("Last.fm auth error", err);
+                alert("Authentication failed. Did you click 'Allow' on Last.fm?");
+                localStorage.removeItem('lastfm_pending_token');
+                pendingToken = null;
+                lastfmConnectBtn.innerHTML = '<ion-icon name="barcode-outline"></ion-icon> Connect Last.fm';
+            }
+        } else {
+            // Step 1: Get Token and Open Browser
+            try {
+                lastfmConnectBtn.innerHTML = 'Loading...';
+                const method = 'auth.getToken';
+                const sigString = `api_key${LASTFM_API_KEY}method${method}${LASTFM_API_SECRET}`;
+                const api_sig = SparkMD5.hash(sigString);
+                
+                const url = `http://ws.audioscrobbler.com/2.0/?method=${method}&api_key=${LASTFM_API_KEY}&api_sig=${api_sig}&format=json`;
+                
+                const res = await fetch(url);
+                const data = await res.json();
+                
+                if (data.token) {
+                    pendingToken = data.token;
+                    localStorage.setItem('lastfm_pending_token', pendingToken);
+                    window.open(`http://www.last.fm/api/auth/?api_key=${LASTFM_API_KEY}&token=${pendingToken}`, '_blank');
+                    checkLastFmAuth();
+                } else {
+                    alert("Failed to contact Last.fm. Check your API keys.");
+                    lastfmConnectBtn.innerHTML = '<ion-icon name="barcode-outline"></ion-icon> Connect Last.fm';
+                }
+            } catch(e) {
+                console.error(e);
+                alert("Network error connecting to Last.fm");
+                lastfmConnectBtn.innerHTML = '<ion-icon name="barcode-outline"></ion-icon> Connect Last.fm';
+            }
+        }
+    });
+
+    checkLastFmAuth();
+
+    function createLastFmSignature(params) {
+        const keys = Object.keys(params).sort();
+        let sigString = '';
+        keys.forEach(k => { sigString += `${k}${params[k]}`; });
+        sigString += LASTFM_API_SECRET;
+        return SparkMD5.hash(sigString);
+    }
+
+    function lastFmApiRequest(method, params) {
+        if (!sessionKey) return Promise.resolve();
+        params.api_key = LASTFM_API_KEY;
+        params.method = method;
+        params.sk = sessionKey;
+        params.api_sig = createLastFmSignature(params);
+        params.format = 'json';
+
+        const form = new URLSearchParams();
+        for (const key in params) form.append(key, params[key]);
+
+        return fetch('http://ws.audioscrobbler.com/2.0/', {
+            method: 'POST',
+            body: form,
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        }).then(res => res.json()).catch(err => console.error("Last.fm API Error:", err));
+    }
+
+    function scrobbleNowPlaying(track) {
+        if (track.artist === "Unknown Artist") return;
+        lastFmApiRequest('track.updateNowPlaying', { artist: track.artist, track: track.track, album: track.album });
+    }
+
+    function scrobbleTrack(track) {
+        if (track.artist === "Unknown Artist" || hasScrobbledCurrent) return;
+        hasScrobbledCurrent = true;
+        lastFmApiRequest('track.scrobble', {
+            artist: track.artist,
+            track: track.track,
+            album: track.album,
+            timestamp: currentTrackStartTime.toString()
+        });
+    }
 
     // --- Drag and Drop Handling ---
 
@@ -97,6 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Promise((resolve) => {
             if (item.isFile) {
                 item.file((file) => {
+                    file.customPath = item.fullPath;
                     pathOrFilesList.push(file);
                     resolve();
                 });
@@ -136,9 +275,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Add to playlist
         validAudioFiles.forEach(file => {
+            const path = file.customPath || file.webkitRelativePath || file.name;
+            const parts = path.split('/').filter(p => p);
+
+            let artist = "Unknown Artist";
+            let album = "Unknown Album";
+            let trackTitle = file.name.replace(/\.[^/.]+$/, "");
+            let folderName = "";
+
+            if (parts.length >= 2) {
+                folderName = parts[parts.length - 2];
+                // folder format: artist - year - album title
+                const fParts = folderName.split(' - ');
+                if (fParts.length >= 3) {
+                    artist = fParts[0].trim();
+                    album = fParts.slice(2).join(' - ').trim();
+                } else {
+                    artist = fParts[0].trim();
+                }
+
+                const filename = parts[parts.length - 1].replace(/\.[^/.]+$/, "");
+                const match = filename.match(/^(?:\[?\d+\]?\s*-\s*)?\d+\s*-\s*(.*)$/);
+                if (match) {
+                    trackTitle = match[1].trim();
+                } else {
+                    trackTitle = filename.trim();
+                }
+            } else {
+                const filename = file.name.replace(/\.[^/.]+$/, "");
+                const match = filename.match(/^(?:\[?\d+\]?\s*-\s*)?\d+\s*-\s*(.*)$/);
+                if (match) {
+                    trackTitle = match[1].trim();
+                } else {
+                    trackTitle = filename.trim();
+                }
+            }
+
+            const display = folderName ? `${folderName} / ${trackTitle}` : trackTitle;
+
             playlist.push({
                 file: file,
-                name: file.name.replace(/\.[^/.]+$/, ""), // remove extension
+                name: display,
+                artist: artist,
+                album: album,
+                track: trackTitle,
                 url: URL.createObjectURL(file)
             });
         });
@@ -196,6 +376,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const track = playlist[index];
 
         audioPlayer.src = track.url;
+        currentTrackStartTime = Math.floor(Date.now() / 1000);
+        hasScrobbledCurrent = false;
 
         // Update Info
         currentTitle.textContent = track.name;
@@ -209,6 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentStatus.textContent = 'Playing';
                 // Start artwork animation ONLY on success
                 trackArtwork.classList.add('playing');
+                scrobbleNowPlaying(track);
             })
             .catch(err => {
                 console.error("Playback blocked by browser (Autoplay policy):", err);
@@ -223,10 +406,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentIndex === -1) return;
 
         if (audioPlayer.paused) {
-            audioPlayer.play();
-            updatePlayPauseUI(true);
-            currentStatus.textContent = 'Playing';
-            trackArtwork.classList.add('playing');
+            audioPlayer.play().then(() => {
+                updatePlayPauseUI(true);
+                currentStatus.textContent = 'Playing';
+                trackArtwork.classList.add('playing');
+                scrobbleNowPlaying(playlist[currentIndex]);
+            });
         } else {
             audioPlayer.pause();
             updatePlayPauseUI(false);
@@ -280,6 +465,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const current = audioPlayer.currentTime;
         const duration = audioPlayer.duration;
+
+        // Scrobble at 50%
+        if (!hasScrobbledCurrent && duration > 0 && current > duration / 2) {
+            scrobbleTrack(playlist[currentIndex]);
+        }
 
         // Update text
         timeCurrent.textContent = formatTime(current);
