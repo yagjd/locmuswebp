@@ -264,7 +264,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleFiles(files) {
-        const validAudioFiles = Array.from(files).filter(file => file.type.startsWith('audio/'));
+        const validAudioFiles = Array.from(files).filter(file => {
+            return file.type.startsWith('audio/') || file.name.match(/\.(mp3|wav|ogg|flac|m4a|aac)$/i);
+        });
 
         if (validAudioFiles.length === 0) {
             alert('Please drop valid audio files (.mp3, .wav, etc.)');
