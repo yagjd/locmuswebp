@@ -435,7 +435,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function playNext() {
         if (playlist.length === 0) return;
         let nextIndex = currentIndex + 1;
-        if (nextIndex >= playlist.length) nextIndex = 0; // loop back to start
+        if (nextIndex >= playlist.length) {
+            audioPlayer.pause();
+            audioPlayer.currentTime = 0;
+            updatePlayPauseUI(false);
+            currentStatus.textContent = 'Playlist ended';
+            trackArtwork.classList.remove('playing');
+            return;
+        }
         playTrack(nextIndex);
     }
 

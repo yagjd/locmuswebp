@@ -38,11 +38,11 @@ body {
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--glass-border);
     border-radius: 24px;
-    padding: 30px;
+    padding: 20px;
     box-shadow: var(--glass-shadow);
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 15px;
     overflow-y: auto;
 }
 
@@ -118,7 +118,7 @@ body {
 .drop-zone {
     border: 2px dashed var(--glass-border);
     border-radius: 16px;
-    padding: 40px 20px;
+    padding: 20px 10px;
     text-align: center;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     background: rgba(0, 0, 0, 0.1);
@@ -132,9 +132,9 @@ body {
 }
 
 .drop-content ion-icon {
-    font-size: 4rem;
+    font-size: 2.5rem;
     color: var(--text-secondary);
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     transition: color 0.3s ease;
 }
 
@@ -143,21 +143,21 @@ body {
 }
 
 .drop-content h2 {
-    font-size: 1.2rem;
+    font-size: 1rem;
     margin-bottom: 5px;
 }
 
 .drop-content p {
     color: var(--text-secondary);
     font-size: 0.85rem;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .glow-btn {
     background: var(--accent-gradient);
     color: white;
     border: none;
-    padding: 10px 24px;
+    padding: 8px 16px;
     border-radius: 50px;
     font-family: inherit;
     font-weight: 600;
@@ -175,7 +175,7 @@ body {
 .player-section {
     background: rgba(0, 0, 0, 0.2);
     border-radius: 16px;
-    padding: 20px;
+    padding: 15px;
     transition: opacity 0.4s ease, transform 0.4s ease;
     display: flex;
     flex-direction: column;
@@ -191,14 +191,14 @@ body {
 .now-playing {
     display: flex;
     align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
+    gap: 10px;
+    margin-bottom: 10px;
     flex-shrink: 0;
 }
 
 .track-artwork {
-    width: 60px;
-    height: 60px;
+    width: 45px;
+    height: 45px;
     border-radius: 12px;
     background: var(--accent-gradient);
     display: flex;
@@ -242,8 +242,8 @@ body {
 .progress-container {
     display: flex;
     align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
+    gap: 10px;
+    margin-bottom: 10px;
     font-size: 0.8rem;
     color: var(--text-secondary);
     flex-shrink: 0;
@@ -275,8 +275,8 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 20px;
-    margin-bottom: 20px;
+    gap: 15px;
+    margin-bottom: 10px;
     flex-shrink: 0;
 }
 
@@ -284,7 +284,7 @@ body {
     background: none;
     border: none;
     color: var(--text-primary);
-    font-size: 1.8rem;
+    font-size: 1.5rem;
     cursor: pointer;
     transition: color 0.2s ease, transform 0.2s ease;
     display: flex;
@@ -298,12 +298,12 @@ body {
 }
 
 .play-btn {
-    width: 60px;
-    height: 60px;
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
     background: var(--text-primary);
     color: var(--bg-color-1);
-    font-size: 2rem;
+    font-size: 1.5rem;
     box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
 }
 
@@ -320,7 +320,7 @@ body {
     align-items: center;
     gap: 10px;
     color: var(--text-secondary);
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     flex-shrink: 0;
 }
 
@@ -396,8 +396,8 @@ body {
 }
 
 .playlist li {
-    padding: 12px;
-    margin-bottom: 8px;
+    padding: 8px;
+    margin-bottom: 5px;
     background: rgba(255, 255, 255, 0.03);
     border-radius: 8px;
     cursor: pointer;
